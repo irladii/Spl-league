@@ -134,8 +134,14 @@
           </tr>
         `).join('');
       } catch (err) {
-        tableBody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
-      }
+  tableBody.innerHTML = `
+    <tr>
+      <td colspan="6" style="color:red; text-align:center;">
+        Error loading data: ${err.message}
+      </td>
+    </tr>`;
+  console.error("Detailed error:", err);
+}
     }
     loadGroup('A', buttonsContainer.firstChild);
   </script>
