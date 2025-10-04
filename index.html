@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spectors Premier League - Standings</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #002c6a, #004aad, #0078d7);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      padding: 20px 10px;
+      background: rgba(0, 0, 0, 0.2);
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin: 0;
+      color: #ffd700;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button {
+      background: #ffd700;
+      color: #002c6a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button.active {
+      background: #fff;
+      color: #004aad;
+      transform: scale(1.05);
+    }
+    button:hover {
+      opacity: 0.8;
+    }
+    table {
+      width: 95%;
+      max-width: 800px;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: rgba(0,0,0,0.3);
+      font-size: 1rem;
+    }
+    tr:nth-child(even) {
+      background: rgba(255,255,255,0.05);
+    }
+    @media (max-width: 600px) {
+      th, td { font-size: 0.8rem; padding: 6px; }
+      h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spectors Premier League - Standings</h1>
+    <p>Season 1 | Inspired by ICC World Cup 2023</p>
+  </header>
+  <nav id="groupButtons"></nav>
+  <table id="standingsTable">
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Team</th>
+        <th>Played</th>
+        <th>Won</th>
+        <th>Lost</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="6">Loading...</td></tr>
+    </tbody>
+  </table>
+  <script>
+    const API_BASE = 'https://767ef729-5e14-4e6a-a039-2b095606745e-00-132ci6akf1tqt.sisko.replit.dev/api/standings';
+    const groups = ['A', 'B', 'C', 'D'];
+    const buttonsContainer = document.getElementById('groupButtons');
+    const tableBody = document.getElementById('tableBody');
+
+    groups.forEach(group => {
+      const btn = document.createElement('button');
+      btn.textContent = `Group ${group}`;
+      btn.onclick = () => loadGroup(group, btn);
+      buttonsContainer.appendChild(btn);
+    });
+
+    async function loadGroup(group, btn) {
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/${group}`);
+        const data = await res.json();
+        if (!data.length) {
+          tableBody.innerHTML = '<tr><td colspan="6">No teams found.</td></tr>';
+          return;
+        }
+        tableBody.innerHTML = data.map((team, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${team.name}</td>
+            <td>${team.played}</td>
+            <td>${team.won}</td>
+            <td>${team.lost}</td>
+            <td>${team.points}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tableBody.innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
+      }
+    }
+    loadGroup('A', buttonsContainer.firstChild);
+  </script>
+</body>
+</html>
