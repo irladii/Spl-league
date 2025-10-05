@@ -100,50 +100,54 @@
     </tbody>
   </table>
   <script>
-    const API_BASE = 'https://767ef729-5e14-4e6a-a039-2b095606745e-00-132ci6akf1tqt.sisko.replit.dev/api/standings';
-    const groups = ['A', 'B', 'C', 'D'];
-    const buttonsContainer = document.getElementById('groupButtons');
-    const tableBody = document.getElementById('tableBody');
+  const API_BASE = 'https://767ef729-5e14-4e6a-a039-2b095606745e-00-132ci6akf1tqt.sisko.replit.dev/api/standings';
+  const groups = ['A', 'B', 'C', 'D'];
+  const buttonsContainer = document.getElementById('groupButtons');
+  const tableBody = document.getElementById('tableBody');
 
-    groups.forEach(group => {
-      const btn = document.createElement('button');
-      btn.textContent = `Group ${group}`;
-      btn.onclick = () => loadGroup(group, btn);
-      buttonsContainer.appendChild(btn);
-    });
+  groups.forEach(group => {
+    const btn = document.createElement('button');
+    btn.textContent = `Group ${group}`;
+    btn.onclick = () => loadGroup(group, btn);
+    buttonsContainer.appendChild(btn);
+  });
 
-    async function loadGroup(group, btn) {
-      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
-      try {
-        const res = await fetch(`${API_BASE}/${group}`);
-        const data = await res.json();
-        if (!data.length) {
-          tableBody.innerHTML = '<tr><td colspan="6">No teams found.</td></tr>';
-          return;
-        }
-        tableBody.innerHTML = data.map((team, index) => `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${team.name}</td>
-            <td>${team.played}</td>
-            <td>${team.won}</td>
-            <td>${team.lost}</td>
-            <td>${team.points}</td>
-          </tr>
-        `).join('');
-      } catch (err) {
-  tableBody.innerHTML = `
-    <tr>
-      <td colspan="6" style="color:red; text-align:center;">
-        Error loading data: ${err.message}
-      </td>
-    </tr>`;
-  console.error("Detailed error:", err);
-}
+  async function loadGroup(group, btn) {
+    document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+
+    try {
+      const res = await fetch(`${API_BASE}/${group}`);
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No teams found.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = data.map((team, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${team.fullname || '—'}</td>
+          <td>${team.matches_played ?? 0}</td>
+          <td>${team.wins ?? 0}</td>
+          <td>${team.losses ?? 0}</td>
+          <td>${team.points ?? 0}</td>
+        </tr>
+      `).join('');
+
+    } catch (err) {
+      console.error("Detailed error:", err);
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="color:red; text-align:center;">
+            Error loading data: ${err.message}
+          </td>
+        </tr>`;
     }
-    loadGroup('A', buttonsContainer.firstChild);
-  </script>
-</body>
-</html>
+  }
+
+  loadGroup('A', buttonsContainer.firstChild);
+</script>
