@@ -113,12 +113,15 @@
   });
 
   async function loadGroup(group, btn) {
-    document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+  document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
 
-    try {
-      const res = await fetch(`${API_BASE}?group=${group}`);
+  console.log("REAL FETCH URL:", `${API_BASE}?group=${group}`);
+
+  try {
+    const res = await fetch(`${API_BASE}?group=${group}`);
+
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
 
