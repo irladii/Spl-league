@@ -118,7 +118,7 @@
     tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
 
     try {
-      const res = await fetch(`${API_BASE}/${group}`);
+      const res = await fetch(`${API_BASE}?group=${group}`);
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
 
