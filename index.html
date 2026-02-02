@@ -100,57 +100,63 @@
     </tbody>
   </table>
   <script>
-  const API_BASE = 'https://spl-api-beta.vercel.app/api/standings';
-  const groups = ['A', 'B', 'C', 'D'];
-  const buttonsContainer = document.getElementById('groupButtons');
-  const tableBody = document.getElementById('tableBody');
+const API_BASE = 'https://raw.githubusercontent.com/irladii/spl-api/main/data/standings.json';
 
-  groups.forEach(group => {
-    const btn = document.createElement('button');
-    btn.textContent = `Group ${group}`;
-    btn.onclick = () => loadGroup(group, btn);
-    buttonsContainer.appendChild(btn);
-  });
+const groups = ['A', 'B', 'C', 'D'];
+const buttonsContainer = document.getElementById('groupButtons');
+const tableBody = document.getElementById('tableBody');
 
-  async function loadGroup(group, btn) {
+groups.forEach(group => {
+  const btn = document.createElement('button');
+  btn.textContent = `Group ${group}`;
+  btn.onclick = () => loadGroup(group, btn);
+  buttonsContainer.appendChild(btn);
+});
+
+async function loadGroup(group, btn) {
   document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   tableBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
 
-  console.log("REAL FETCH URL:", `${API_BASE}?group=${group}`);
-
   try {
-    const res = await fetch(`${API_BASE}?group=${group}`);
+    const res = await fetch(API_BASE);
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
 
-      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-      const data = await res.json();
+    const allData = await res.json();
+    const data = allData[group] || [];
 
-      if (!Array.isArray(data) || data.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No teams found.</td></tr>';
-        return;
-      }
-
-      tableBody.innerHTML = data.map((team, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${team.team || '—'}</td>
-          <td>${team.played ?? 0}</td>
-          <td>${team.won ?? 0}</td>
-          <td>${team.lost ?? 0}</td>
-          <td>${team.points ?? 0}</td>
-        </tr>
-      `).join('');
-
-    } catch (err) {
-      console.error("Detailed error:", err);
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="6" style="color:red; text-align:center;">
-            Error loading data: ${err.message}
-          </td>
-        </tr>`;
+    if (data.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6">No teams found.</td></tr>';
+      return;
     }
-  }
 
-  loadGroup('A', buttonsContainer.firstChild);
-</script>
+    // SORT BY POINTS DESC → WINS DESC
+    data.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return b.won - a.won;
+    });
+
+    tableBody.innerHTML = data.map((team, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${team.team}</td>
+        <td>${team.played}</td>
+        <td>${team.won}</td>
+        <td>${team.lost}</td>
+        <td>${team.points}</td>
+      </tr>
+    `).join('');
+
+  } catch (err) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="color:red;">
+          Error loading data
+        </td>
+      </tr>`;
+    console.error(err);
+  }
+}
+
+loadGroup('A', buttonsContainer.firstChild);
+  </script>
